@@ -196,21 +196,28 @@
             <label for="promptText">Prompt:</label>
             <textarea id="promptText" placeholder="Enter your prompt for the AI to analyze the image...">You are an AI expert tasked with evaluating headshots for professional use (e.g., LinkedIn, corporate websites). Analyze the provided image based on the following criteria. For each criterion, provide a score from 1 (poor) to 10 (excellent) and a brief justification.
 
-Criteria:
-1. Subject Count: Is there exactly one person in the photo?
-2. Distractions: Is the image free of distracting elements like pets, objects, or other people?
-3. Composition & Framing: Is the person well-centered and framed appropriately (e.g., head and shoulders)?
-4. Background: Is the background neutral, non-distracting, or professionally appropriate (e.g., an office setting vs. a messy room)?
-5. Lighting: Is the subject's face clearly visible and well-lit, without harsh shadows?
-6. Image Quality: Is the image clear, in-focus, and not blurry or pixelated?
-7. Attire & Appearance: Is the subject's attire and grooming appropriate for a professional context?
-8. Human: The subject must be human, not an animal or object.
-9. Health: The subject should look healthy and well-groomed, not sick or disheveled.
-10. Visibility: The subject should not be wearing sunglasses or hats that obscure their face.
+this criteria must be met to be a success:
+* must have exactly one subject
+* Subject must be human
+* subject's face must be clearly visible without obstruction
 
-After evaluating each criterion, provide an Overall Professionalism Score (from 1 to 100) and a Final Recommendation (e.g., "Highly Recommended", "Usable with Minor Concerns", "Not Recommended"), and a justification for that score
+here are some additional Criteria to help judge professionalism:
+* Distractions: Is the image free of distracting elements like pets, objects, or other people?
+* Composition & Framing: Is the person well-centered and framed appropriately (e.g., head and shoulders)?
+* Background: Is the background neutral, non-distracting, or professionally appropriate (e.g., an office setting vs. a messy room)?
+* Lighting: Is the subject's face clearly visible and well-lit, without harsh shadows?
+* Image Quality: Is the image clear, in-focus, and not blurry or pixelated?
+* Attire & Appearance: Is the subject's attire and grooming appropriate for a professional context?
+* Visibility: The subject should not be wearing sunglasses or hats that obscure their face.
 
-Please provide your final output in JSON format that is easy to read and understand.</textarea>
+After evaluating each criterion, provide an Overall Professionalism Score (from 1 to 100) and a Final Recommendation (e.g., "Highly Recommended", "Usable with Minor Concerns", "Not Recommended").  If any of the required criteria are not met give a recommendation of Not Recommended.  Also include a description of the image
+
+Please provide your final output in JSON format that is easy to read and understand in this format:
+{
+  "description": "...",
+  "score": "...",
+  "recommendation": "..."
+}</textarea>
         </div>
         
         <div class="button-container">
