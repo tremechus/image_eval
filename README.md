@@ -4,7 +4,7 @@ A web application for evaluating professional headshots using AI (Ollama with LL
 
 ## Live Demo
 
-🚀 **[https://image_eval.tremech.us](https://image_eval.tremech.us)**
+🚀 **[https://profileimg.tremech.us](https://profileimg.tremech.us)**
 
 ## Features
 
