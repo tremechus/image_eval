@@ -1,0 +1,14 @@
+{
+  "name": "image-evaluator",
+  "version": "1.0.0",
+  "description": "A simple web application for evaluating images using AI",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 8080",
+    "serve": "python -m http.server 8080",
+    "https": "openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes && python -m http.server 8080 --bind 127.0.0.1"
+  },
+  "keywords": ["image", "ai", "evaluation", "ollama", "llava"],
+  "author": "",
+  "license": "MIT"
+}
