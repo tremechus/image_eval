@@ -6,136 +6,179 @@
     <title>Image Evaluator</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f5f5f5;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
         }
         
         .container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
         h1 {
             text-align: center;
-            color: #333;
-            margin-bottom: 30px;
+            color: #2d3748;
+            margin-bottom: 40px;
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
         
         label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 1.1rem;
         }
         
         input[type="url"] {
             width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
             font-size: 16px;
             box-sizing: border-box;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
         }
         
         input[type="url"]:focus {
-            border-color: #4CAF50;
+            border-color: #667eea;
             outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
         }
         
         textarea {
             width: 100%;
-            min-height: 120px;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
+            min-height: 200px;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
             font-size: 14px;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             resize: vertical;
             box-sizing: border-box;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+            line-height: 1.6;
         }
         
         textarea:focus {
-            border-color: #4CAF50;
+            border-color: #667eea;
             outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
         }
         
         .button-container {
             text-align: center;
-            margin: 30px 0;
+            margin: 40px 0;
         }
         
         button {
-            background-color: #4CAF50;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 12px 30px;
-            font-size: 16px;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: 600;
             border: none;
-            border-radius: 5px;
+            border-radius: 50px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
         button:hover {
-            background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
         }
         
         button:disabled {
-            background-color: #cccccc;
+            background: linear-gradient(135deg, #a0a0a0 0%, #808080 100%);
             cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
         
         .output-section {
-            margin-top: 30px;
+            margin-top: 40px;
         }
         
         .output-box {
-            background-color: #f8f9fa;
-            border: 2px solid #e9ecef;
-            border-radius: 5px;
-            padding: 15px;
-            min-height: 100px;
-            font-family: 'Courier New', monospace;
+            background: rgba(248, 250, 252, 0.9);
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 120px;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
             font-size: 14px;
             white-space: pre-wrap;
             word-wrap: break-word;
+            line-height: 1.5;
+            transition: all 0.3s ease;
         }
         
         .loading {
-            color: #666;
+            color: #667eea;
             font-style: italic;
+            font-weight: 500;
         }
         
         .error {
-            color: #dc3545;
-            background-color: #f8d7da;
-            border-color: #f5c6cb;
+            color: #e53e3e;
+            background: rgba(254, 178, 178, 0.2);
+            border-color: #feb2b2;
+            font-weight: 500;
         }
         
         .success {
-            color: #155724;
-            background-color: #d4edda;
-            border-color: #c3e6cb;
+            color: #38a169;
+            background: rgba(154, 230, 180, 0.2);
+            border-color: #9ae6b4;
+            font-weight: 500;
         }
         
         .image-preview {
-            margin-top: 10px;
+            margin-top: 15px;
             text-align: center;
         }
         
         .image-preview img {
             max-width: 100%;
-            max-height: 200px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            max-height: 250px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .image-preview img:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
         }
     </style>
 </head>
@@ -161,15 +204,17 @@ Criteria:
 5. Lighting: Is the subject's face clearly visible and well-lit, without harsh shadows?
 6. Image Quality: Is the image clear, in-focus, and not blurry or pixelated?
 7. Attire & Appearance: Is the subject's attire and grooming appropriate for a professional context?
+8. Human: The subject must be human, not an animal or object.
+9. Health: The subject should look healthy and well-groomed, not sick or disheveled.
+10. Visibility: The subject should not be wearing sunglasses or hats that obscure their face.
 
-After evaluating each criterion, provide an Overall Professionalism Score (from 1 to 100) and a Final Recommendation (e.g., "Highly Recommended", "Usable with Minor Concerns", "Not Recommended").
+After evaluating each criterion, provide an Overall Professionalism Score (from 1 to 100) and a Final Recommendation (e.g., "Highly Recommended", "Usable with Minor Concerns", "Not Recommended"), and a justification for that score
 
-Please provide your final output in JSON format.</textarea>
+Please provide your final output in JSON format that is easy to read and understand.</textarea>
         </div>
         
         <div class="button-container">
             <button id="processButton" onclick="processImage()">Process Image</button>
-            <button onclick="testDifferentMethods()" style="margin-left: 10px; background-color: #007bff;">Debug Request</button>
         </div>
         
         <div class="output-section">
@@ -241,23 +286,6 @@ Please provide your final output in JSON format.</textarea>
                 
                 console.log('Making request to server...');
                 
-                const requestBody = {
-                    model: 'llava',
-                    format: 'json',
-                    prompt: promptText,
-                    stream: false,
-                    images: [base64Image]
-                };
-                
-                console.log('Request body prepared:', {
-                    ...requestBody,
-                    images: [`[base64 data - ${base64Image.length} characters]`]
-                });
-                
-                // Make request to Ollama using the same pattern as ai_discuss
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
-                
                 // Convert to messages format like ai_discuss
                 const messages = [
                     { role: 'user', content: promptText }
@@ -271,17 +299,15 @@ Please provide your final output in JSON format.</textarea>
                     format: 'json'
                 };
                 
-                console.log('Chat request body prepared:', {
-                    ...chatRequestBody,
-                    images: [`[base64 data - ${base64Image.length} characters]`]
-                });
-                
                 const headers = {
                     'Content-Type': 'application/json'
                 };
                 
                 // Use the same header capitalization as ai_discuss
                 headers['X-API-Key'] = 'thisisthesecretkey';
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
                 
                 const response = await fetch('https://server.tremech.us:11434/api/chat', {
                     method: 'POST',
@@ -292,22 +318,12 @@ Please provide your final output in JSON format.</textarea>
                 
                 clearTimeout(timeoutId);
 
-                console.log('Response received:', response);
-                console.log('Response status:', response.status);
-                console.log('Response ok:', response.ok);
-                console.log('Response headers:');
-                for (let [key, value] of response.headers.entries()) {
-                    console.log(`  ${key}: ${value}`);
-                }
-
                 if (!response.ok) {
                     const errorText = await response.text();
-                    console.log('Error response body:', errorText);
                     throw new Error(`Server error: ${response.status} ${response.statusText} - ${errorText}`);
                 }
 
                 const result = await response.json();
-                console.log('Result:', result);
                 
                 // Extract content from chat response format
                 let content = result;
@@ -318,17 +334,14 @@ Please provide your final output in JSON format.</textarea>
                         content = JSON.parse(content);
                     } catch (e) {
                         // If parsing fails, use the raw content
-                        console.log('Content is not JSON, using raw text');
                     }
                 }
                 
                 showOutput(JSON.stringify(content, null, 2), 'success');
 
             } catch (error) {
-                console.error('Error details:', error);
-                
                 if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                    showOutput(`CORS Error: Unable to connect to server. This could be a CORS issue or network problem. Check browser console for details.\n\nError: ${error.message}`, 'error');
+                    showOutput(`CORS Error: Unable to connect to server. This could be a CORS issue or network problem.\n\nError: ${error.message}`, 'error');
                 } else {
                     showOutput(`Error: ${error.message}`, 'error');
                 }
@@ -363,7 +376,6 @@ Please provide your final output in JSON format.</textarea>
                     
                     // Get base64 data with lower quality to reduce size
                     const base64 = canvas.toDataURL('image/jpeg', 0.5).split(',')[1]; // Reduced quality to 50%
-                    console.log('Image resized to:', width, 'x', height, 'Base64 length:', base64.length);
                     resolve(base64);
                 };
 
@@ -385,81 +397,6 @@ Please provide your final output in JSON format.</textarea>
             // Add the appropriate class
             if (type) {
                 outputDiv.classList.add(type);
-            }
-        }
-
-        async function testDifferentMethods() {
-            showOutput('Testing different request methods...', 'loading');
-            
-            const results = [];
-            
-            try {
-                // Test 1: Minimal GET request
-                console.log('Testing GET request...');
-                const getResponse = await fetch('https://server.tremech.us:11434/api/tags', {
-                    method: 'GET'
-                });
-                results.push(`GET /api/tags: ${getResponse.status}`);
-                console.log('GET response headers:', [...getResponse.headers.entries()]);
-                
-                // Test 2: POST with minimal body using chat endpoint
-                console.log('Testing minimal POST with chat endpoint...');
-                const minimalPost = await fetch('https://server.tremech.us:11434/api/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ 
-                        model: 'llava', 
-                        messages: [{ role: 'user', content: 'hi' }],
-                        stream: false
-                    })
-                });
-                results.push(`POST chat minimal: ${minimalPost.status}`);
-                
-                // Test 3: POST with correct API key header format
-                console.log('Testing POST with X-API-Key...');
-                const apiKeyPost = await fetch('https://server.tremech.us:11434/api/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-API-Key': 'thisisthesecretkey'
-                    },
-                    body: JSON.stringify({ 
-                        model: 'llava', 
-                        messages: [{ role: 'user', content: 'hi' }],
-                        stream: false
-                    })
-                });
-                results.push(`POST with X-API-Key: ${apiKeyPost.status}`);
-                // Test 4: POST with curl User-Agent
-                console.log('Testing POST with curl User-Agent...');
-                const curlPost = await fetch('https://server.tremech.us:11434/api/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'User-Agent': 'curl/8.9.1',
-                        'X-API-Key': 'thisisthesecretkey'
-                    },
-                    body: JSON.stringify({ 
-                        model: 'llava', 
-                        messages: [{ role: 'user', content: 'hi' }],
-                        stream: false
-                    })
-                });
-                results.push(`POST curl UA with auth: ${curlPost.status}`);
-                
-                // Test 4: Check what headers are being sent
-                console.log('Browser info:');
-                console.log('Origin:', window.location.origin);
-                console.log('User-Agent:', navigator.userAgent);
-                console.log('Referer:', document.referrer);
-                
-                showOutput(`Debug Results:\n${results.join('\n')}\n\nOrigin: ${window.location.origin}\nCheck console for detailed headers`, 'success');
-                
-            } catch (error) {
-                console.error('Debug test error:', error);
-                showOutput(`Debug failed: ${error.message}\n\nResults so far:\n${results.join('\n')}`, 'error');
             }
         }
     </script>
