@@ -194,7 +194,23 @@
         
         <div class="form-group">
             <label for="promptText">Prompt:</label>
-            <textarea id="promptText" placeholder="Enter your prompt for the AI to analyze the image...">You are an AI expert tasked with evaluating headshots for professional use (e.g., LinkedIn, corporate websites). Analyze the provided image based on the following criteria. For each criterion, provide a score from 1 (poor) to 10 (excellent) and a brief justification.
+            <textarea id="promptText" placeholder="Enter your prompt for the AI to analyze the image..."></textarea>
+        </div>
+        
+        <div class="button-container">
+            <button id="processButton" onclick="processImage()">Process Image</button>
+            <button id="resetButton" onclick="resetPrompt()" style="margin-left: 15px; background: linear-gradient(135deg, #718096 0%, #4a5568 100%);">Reset Prompt</button>
+        </div>
+        
+        <div class="output-section">
+            <label for="output">Output:</label>
+            <div id="output" class="output-box">Results will appear here...</div>
+        </div>
+    </div>
+
+    <script>
+        // Default prompt text
+        const DEFAULT_PROMPT = `You are an AI expert tasked with evaluating headshots for professional use (e.g., LinkedIn, corporate websites). Analyze the provided image based on the following criteria. For each criterion, provide a score from 1 (poor) to 10 (excellent) and a brief justification.
 
 this criteria must be met to be a success:
 * must have exactly one subject
@@ -217,26 +233,15 @@ Please provide your final output in JSON format that is easy to read and underst
   "description": "...",
   "score": "...",
   "recommendation": "..."
-}</textarea>
-        </div>
-        
-        <div class="button-container">
-            <button id="processButton" onclick="processImage()">Process Image</button>
-            <button id="resetButton" onclick="resetPrompt()" style="margin-left: 15px; background: linear-gradient(135deg, #718096 0%, #4a5568 100%);">Reset Prompt</button>
-        </div>
-        
-        <div class="output-section">
-            <label for="output">Output:</label>
-            <div id="output" class="output-box">Results will appear here...</div>
-        </div>
-    </div>
+}`;
 
-    <script>
         // Load saved prompt from localStorage
         window.addEventListener('load', function() {
             const savedPrompt = localStorage.getItem('imageEvalPrompt');
             if (savedPrompt) {
                 document.getElementById('promptText').value = savedPrompt;
+            } else {
+                document.getElementById('promptText').value = DEFAULT_PROMPT;
             }
         });
 
@@ -405,26 +410,8 @@ Please provide your final output in JSON format that is easy to read and underst
         }
 
         function resetPrompt() {
-            const defaultPrompt = `You are an AI expert tasked with evaluating headshots for professional use (e.g., LinkedIn, corporate websites). Analyze the provided image based on the following criteria. For each criterion, provide a score from 1 (poor) to 10 (excellent) and a brief justification.
-
-Criteria:
-1. Subject Count: Is there exactly one person in the photo?
-2. Distractions: Is the image free of distracting elements like pets, objects, or other people?
-3. Composition & Framing: Is the person well-centered and framed appropriately (e.g., head and shoulders)?
-4. Background: Is the background neutral, non-distracting, or professionally appropriate (e.g., an office setting vs. a messy room)?
-5. Lighting: Is the subject's face clearly visible and well-lit, without harsh shadows?
-6. Image Quality: Is the image clear, in-focus, and not blurry or pixelated?
-7. Attire & Appearance: Is the subject's attire and grooming appropriate for a professional context?
-8. Human: The subject must be human, not an animal or object.
-9. Health: The subject should look healthy and well-groomed, not sick or disheveled.
-10. Visibility: The subject should not be wearing sunglasses or hats that obscure their face.
-
-After evaluating each criterion, provide an Overall Professionalism Score (from 1 to 100) and a Final Recommendation (e.g., "Highly Recommended", "Usable with Minor Concerns", "Not Recommended"), and a justification for that score
-
-Please provide your final output in JSON format that is easy to read and understand.`;
-            
-            document.getElementById('promptText').value = defaultPrompt;
-            localStorage.setItem('imageEvalPrompt', defaultPrompt);
+            document.getElementById('promptText').value = DEFAULT_PROMPT;
+            localStorage.setItem('imageEvalPrompt', DEFAULT_PROMPT);
         }
     </script>
 </body>
