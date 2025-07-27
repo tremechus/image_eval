@@ -1,13 +1,11 @@
 const https = require('https');
+const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
 
-// Create a simple HTTPS server
-const server = https.createServer({
-    key: fs.readFileSync('key.pem', 'utf8').catch(() => null),
-    cert: fs.readFileSync('cert.pem', 'utf8').catch(() => null)
-}, (req, res) => {
+// Request handler function
+const requestHandler = (req, res) => {
     const parsedUrl = url.parse(req.url);
     let pathname = parsedUrl.pathname;
     
@@ -32,7 +30,9 @@ const server = https.createServer({
             '.html': 'text/html',
             '.js': 'text/javascript',
             '.css': 'text/css',
-            '.json': 'application/json'
+            '.json': 'application/json',
+            '.svg': 'image/svg+xml',
+            '.ico': 'image/x-icon'
         };
         
         res.writeHead(200, {
@@ -41,9 +41,30 @@ const server = https.createServer({
         });
         res.end(data);
     });
-});
+};
 
-const PORT = 8443;
-server.listen(PORT, () => {
-    console.log(`HTTPS Server running on https://localhost:${PORT}`);
-});
+// Try to create HTTPS server first, fallback to HTTP
+let server;
+const HTTPS_PORT = 8443;
+const HTTP_PORT = 8080;
+
+try {
+    // Try to read SSL certificates
+    const key = fs.readFileSync('key.pem', 'utf8');
+    const cert = fs.readFileSync('cert.pem', 'utf8');
+    
+    // Create HTTPS server if certificates exist
+    server = https.createServer({ key, cert }, requestHandler);
+    server.listen(HTTPS_PORT, () => {
+        console.log(`✅ HTTPS Server running on https://localhost:${HTTPS_PORT}`);
+        console.log(`🌐 Open https://localhost:${HTTPS_PORT} in your browser`);
+    });
+} catch (err) {
+    // Fallback to HTTP server if no certificates
+    console.log('📝 SSL certificates not found, starting HTTP server...');
+    server = http.createServer(requestHandler);
+    server.listen(HTTP_PORT, () => {
+        console.log(`✅ HTTP Server running on http://localhost:${HTTP_PORT}`);
+        console.log(`🌐 Open http://localhost:${HTTP_PORT} in your browser`);
+    });
+}

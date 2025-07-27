@@ -9,20 +9,150 @@
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 900px;
-            margin: 0 auto;
+            margin: 0;
             padding: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
         }
         
         .container {
+            max-width: 1400px;
+            margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
-            padding: 40px;
+            padding: 30px;
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        .input-panel {
+            background: rgba(248, 250, 252, 0.3);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid rgba(226, 232, 240, 0.5);
+        }
+        
+        .results-panel {
+            background: rgba(248, 250, 252, 0.3);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid rgba(226, 232, 240, 0.5);
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+        }
+        
+        .results-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .summary-panel {
+            background: rgba(255, 255, 255, 0.5);
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            text-align: center;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .summary-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .summary-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 10px;
+        }
+        
+        .summary-score {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .summary-confidence {
+            font-size: 0.9rem;
+            color: #718096;
+        }
+        
+        .summary-panel.highly-recommended {
+            border-color: #48bb78;
+            background: rgba(72, 187, 120, 0.1);
+        }
+        
+        .summary-panel.highly-recommended .summary-text {
+            color: #38a169;
+        }
+        
+        .summary-panel.highly-recommended .summary-score {
+            color: #38a169;
+        }
+        
+        .summary-panel.usable {
+            border-color: #ed8936;
+            background: rgba(237, 137, 54, 0.1);
+        }
+        
+        .summary-panel.usable .summary-text {
+            color: #dd6b20;
+        }
+        
+        .summary-panel.usable .summary-score {
+            color: #dd6b20;
+        }
+        
+        .summary-panel.not-recommended {
+            border-color: #e53e3e;
+            background: rgba(229, 62, 62, 0.1);
+        }
+        
+        .summary-panel.not-recommended .summary-text {
+            color: #c53030;
+        }
+        
+        .summary-panel.not-recommended .summary-score {
+            color: #c53030;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .results-panel {
+                position: static;
+                max-height: none;
+            }
+            
+            .results-layout {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .container {
+                padding: 20px;
+            }
         }
         
         h1 {
@@ -45,7 +175,6 @@
         .url-input-container {
             position: relative;
             display: flex;
-            gap: 10px;
             align-items: stretch;
         }
         
@@ -117,21 +246,20 @@
         }
         
         .history-button {
-            padding: 15px 20px;
+            padding: 15px;
             border: 2px solid #e2e8f0;
-            border-radius: 12px;
+            border-left: none;
+            border-radius: 0 12px 12px 0;
             background: rgba(255, 255, 255, 0.9);
             cursor: pointer;
             transition: all 0.3s ease;
             color: #4a5568;
             font-weight: 600;
-            min-width: 120px;
-            text-align: center;
-        }
-        
-        .history-button:hover {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.1);
+            width: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
         }
         
         .clear-history {
@@ -156,7 +284,7 @@
             width: 100%;
             padding: 15px;
             border: 2px solid #e2e8f0;
-            border-radius: 12px;
+            border-radius: 12px 0 0 12px;
             font-size: 16px;
             box-sizing: border-box;
             transition: all 0.3s ease;
@@ -167,6 +295,11 @@
             border-color: #667eea;
             outline: none;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        .url-input-wrapper:focus-within + .history-button {
+            border-color: #667eea;
             transform: translateY(-1px);
         }
         
@@ -229,11 +362,11 @@
         }
         
         .output-section {
-            margin-top: 40px;
+            margin-top: 0;
         }
         
         .output-box {
-            background: rgba(248, 250, 252, 0.9);
+            background: rgba(255, 255, 255, 0.9);
             border: 2px solid #e2e8f0;
             border-radius: 12px;
             padding: 20px;
@@ -244,6 +377,8 @@
             word-wrap: break-word;
             line-height: 1.5;
             transition: all 0.3s ease;
+            max-height: 400px;
+            overflow-y: auto;
         }
         
         .loading {
@@ -322,15 +457,17 @@
         
         .evaluation-results {
             display: grid;
-            gap: 20px;
-            margin-top: 20px;
+            gap: 15px;
+            margin-top: 15px;
+            max-height: 600px;
+            overflow-y: auto;
         }
         
         .evaluation-item {
             border: 2px solid #e2e8f0;
             border-radius: 12px;
             padding: 15px;
-            background: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.7);
         }
         
         .evaluation-header {
@@ -432,7 +569,7 @@
             border: 2px solid #667eea;
             border-radius: 12px;
             padding: 15px;
-            margin-top: 15px;
+            margin-bottom: 15px;
         }
         
         .variance-summary h4 {
@@ -440,75 +577,120 @@
             color: #667eea;
             font-size: 1.1rem;
         }
+        
+        .panel-header {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(226, 232, 240, 0.5);
+        }
+        
+        .image-preview {
+            margin-top: 15px;
+            text-align: center;
+            max-height: 300px;
+            overflow: hidden;
+        }
+        
+        .image-preview img {
+            max-width: 100%;
+            max-height: 275px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Profile Evaluator</h1>
         
-        <div class="form-group">
-            <label for="imageUrl">Image URL:</label>
-            <div class="url-input-container">
-                <div class="url-input-wrapper">
-                    <input type="url" id="imageUrl" placeholder="Enter image URL (e.g., https://example.com/image.jpg)" />
-                    <div id="historyDropdown" class="history-dropdown"></div>
+        <div class="main-layout">
+            <!-- Input Panel -->
+            <div class="input-panel">
+                <h2 class="panel-header">Configuration</h2>
+                
+                <div class="form-group">
+                    <label for="imageUrl">Image URL:</label>
+                    <div class="url-input-container">
+                        <div class="url-input-wrapper">
+                            <input type="url" id="imageUrl" placeholder="Enter image URL (e.g., https://example.com/image.jpg)" />
+                            <div id="historyDropdown" class="history-dropdown"></div>
+                        </div>
+                        <button type="button" class="history-button" onclick="toggleHistory()">
+                            <span id="historyButtonText">▼</span>
+                        </button>
+                    </div>
                 </div>
-                <button type="button" class="history-button" onclick="toggleHistory()">
-                    <span id="historyButtonText">History ▼</span>
-                </button>
+                
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label for="promptText">Prompt:</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label for="modelSelect" style="margin: 0; font-size: 1rem; font-weight: 500;">Model:</label>
+                            <select id="modelSelect" style="
+                                padding: 8px 12px; 
+                                border: 2px solid #e2e8f0; 
+                                border-radius: 8px; 
+                                background: rgba(255, 255, 255, 0.9);
+                                font-size: 14px;
+                                min-width: 150px;
+                                transition: all 0.3s ease;
+                                cursor: pointer;
+                            " onmouseover="this.style.borderColor='#667eea'" onmouseout="this.style.borderColor='#e2e8f0'">
+                                <option value="llava">llava (default)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="controls-row">
+                        <div class="control-group">
+                            <label for="evaluationCount">Evaluations:</label>
+                            <select id="evaluationCount">
+                                <option value="1">1 (Single)</option>
+                                <option value="3">3 (Consistency Check)</option>
+                                <option value="5">5 (High Confidence)</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label for="showAnnotations">Visual Annotations:</label>
+                            <input type="checkbox" id="showAnnotations" checked>
+                        </div>
+                        <div class="control-group">
+                            <label for="requireConfidence">Require Confidence Score:</label>
+                            <input type="checkbox" id="requireConfidence" checked>
+                        </div>
+                    </div>
+                    <textarea id="promptText" placeholder="Enter your prompt for the AI to analyze the image..."></textarea>
+                </div>
+                
+                <div class="button-container">
+                    <button id="processButton" onclick="processImage()">Process Image</button>
+                    <button id="resetButton" onclick="resetPrompt()" style="margin-left: 15px; background: linear-gradient(135deg, #718096 0%, #4a5568 100%);">Reset Prompt</button>
+                </div>
             </div>
-            <div id="imagePreview" class="image-preview"></div>
-        </div>
-        
-        <div class="form-group">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <label for="promptText">Prompt:</label>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <label for="modelSelect" style="margin: 0; font-size: 1rem; font-weight: 500;">Model:</label>
-                    <select id="modelSelect" style="
-                        padding: 8px 12px; 
-                        border: 2px solid #e2e8f0; 
-                        border-radius: 8px; 
-                        background: rgba(255, 255, 255, 0.9);
-                        font-size: 14px;
-                        min-width: 150px;
-                        transition: all 0.3s ease;
-                        cursor: pointer;
-                    " onmouseover="this.style.borderColor='#667eea'" onmouseout="this.style.borderColor='#e2e8f0'">
-                        <option value="llava">llava (default)</option>
-                    </select>
+            
+            <!-- Results Panel -->
+            <div class="results-panel">
+                <h2 class="panel-header">Results</h2>
+                
+                <div class="results-layout">
+                    <div id="imagePreview" class="image-preview"></div>
+                    
+                    <div id="summaryPanel" class="summary-panel">
+                        <div class="summary-icon">📋</div>
+                        <div class="summary-text">Upload an image to get started</div>
+                    </div>
+                </div>
+                
+                <div class="output-section">
+                    <label for="output">Output:</label>
+                    <div id="output" class="output-box">Results will appear here...</div>
+                    <div id="evaluationResults" class="evaluation-results" style="display: none;"></div>
                 </div>
             </div>
-            <div class="controls-row">
-                <div class="control-group">
-                    <label for="evaluationCount">Evaluations:</label>
-                    <select id="evaluationCount">
-                        <option value="1">1 (Single)</option>
-                        <option value="3">3 (Consistency Check)</option>
-                        <option value="5">5 (High Confidence)</option>
-                    </select>
-                </div>
-                <div class="control-group">
-                    <label for="showAnnotations">Visual Annotations:</label>
-                    <input type="checkbox" id="showAnnotations" checked>
-                </div>
-                <div class="control-group">
-                    <label for="requireConfidence">Require Confidence Score:</label>
-                    <input type="checkbox" id="requireConfidence" checked>
-                </div>
-            </div>
-            <textarea id="promptText" placeholder="Enter your prompt for the AI to analyze the image..."></textarea>
-        </div>
-        
-        <div class="button-container">
-            <button id="processButton" onclick="processImage()">Process Image</button>
-            <button id="resetButton" onclick="resetPrompt()" style="margin-left: 15px; background: linear-gradient(135deg, #718096 0%, #4a5568 100%);">Reset Prompt</button>
-        </div>
-        
-        <div class="output-section">
-            <label for="output">Output:</label>
-            <div id="output" class="output-box">Results will appear here...</div>
-            <div id="evaluationResults" class="evaluation-results" style="display: none;"></div>
         </div>
     </div>
 
@@ -576,18 +758,18 @@
             
             if (dropdown.style.display === 'block') {
                 dropdown.style.display = 'none';
-                button.textContent = 'History ▼';
+                button.textContent = '▼';
             } else {
                 updateHistoryDropdown();
                 dropdown.style.display = 'block';
-                button.textContent = 'History ▲';
+                button.textContent = '▲';
             }
         }
         
         function selectFromHistory(url) {
             document.getElementById('imageUrl').value = url;
             document.getElementById('historyDropdown').style.display = 'none';
-            document.getElementById('historyButtonText').textContent = 'History ▼';
+            document.getElementById('historyButtonText').textContent = '▼';
             
             // Trigger the preview update
             const event = new Event('input', { bubbles: true });
@@ -609,7 +791,7 @@
                 !button.contains(event.target) && 
                 !urlInput.contains(event.target)) {
                 dropdown.style.display = 'none';
-                document.getElementById('historyButtonText').textContent = 'History ▼';
+                document.getElementById('historyButtonText').textContent = '▼';
             }
         });
 
@@ -915,6 +1097,7 @@ Please provide your final output in JSON format that is easy to read and underst
                 // Display results
                 if (evaluationCount === 1) {
                     showOutput(JSON.stringify(evaluations[0].content, null, 2), 'success');
+                    updateSummaryPanel(evaluations[0].content);
                     if (showAnnotations) {
                         displayAnnotations(evaluations[0].content, imageUrl);
                     }
@@ -1066,7 +1249,7 @@ Please provide your final output in JSON format that is easy to read and underst
                             <span>Evaluation ${evaluation.id} (${evaluation.timestamp})</span>
                             ${confidenceBadge}
                         </div>
-                        <pre style="font-family: 'JetBrains Mono', monospace; white-space: pre-wrap; margin: 0;">${JSON.stringify(content, null, 2)}</pre>
+                        <pre style="font-family: 'JetBrains Mono', monospace; white-space: pre-wrap; margin: 0; font-size: 12px; max-height: 300px; overflow-y: auto;">${JSON.stringify(content, null, 2)}</pre>
                         ${showAnnotations ? getAnnotationDisplay(content, imageUrl, index) : ''}
                     </div>
                 `;
@@ -1074,6 +1257,51 @@ Please provide your final output in JSON format that is easy to read and underst
             });
             
             showOutput('Multiple evaluations completed. See detailed results below.', 'success');
+            
+            // Update summary panel with first evaluation
+            if (evaluations.length > 0) {
+                updateSummaryPanel(evaluations[0].content);
+            }
+        }
+
+        function updateSummaryPanel(content) {
+            const summaryPanel = document.getElementById('summaryPanel');
+            
+            if (typeof content === 'object' && content.recommendation) {
+                const recommendation = content.recommendation.toLowerCase();
+                const score = content.score ? extractNumericValue(content.score) : null;
+                const confidence = content.confidence ? extractNumericValue(content.confidence) : null;
+                
+                let icon = '📋';
+                let className = '';
+                let displayText = content.recommendation;
+                
+                if (recommendation.includes('highly recommended') || recommendation.includes('excellent')) {
+                    icon = '👍';
+                    className = 'highly-recommended';
+                } else if (recommendation.includes('usable') || recommendation.includes('acceptable') || recommendation.includes('minor')) {
+                    icon = '🤷';
+                    className = 'usable';
+                } else if (recommendation.includes('not recommended') || recommendation.includes('poor') || recommendation.includes('unsuitable')) {
+                    icon = '👎';
+                    className = 'not-recommended';
+                }
+                
+                summaryPanel.className = `summary-panel ${className}`;
+                summaryPanel.innerHTML = `
+                    <div class="summary-icon">${icon}</div>
+                    <div class="summary-text">${displayText}</div>
+                    ${score ? `<div class="summary-score">${score}</div>` : ''}
+                    ${confidence ? `<div class="summary-confidence">${confidence}% confidence</div>` : ''}
+                `;
+            } else {
+                // Reset to default state
+                summaryPanel.className = 'summary-panel';
+                summaryPanel.innerHTML = `
+                    <div class="summary-icon">📋</div>
+                    <div class="summary-text">Processing complete</div>
+                `;
+            }
         }
 
         function getConfidenceClass(confidence) {
@@ -1101,7 +1329,11 @@ Please provide your final output in JSON format that is easy to read and underst
                             console.log('Processing annotation:', annotation);
                             
                             if (annotation.coordinates) {
-                                const coords = annotation.coordinates.split(',').map(c => parseFloat(c.trim()));
+                                const coords = typeof annotation.coordinates === 'string' 
+                                    ? annotation.coordinates.split(',').map(c => parseFloat(c.trim()))
+                                    : Array.isArray(annotation.coordinates) 
+                                        ? annotation.coordinates.map(c => parseFloat(c))
+                                        : [];
                                 console.log('Parsed coordinates:', coords);
                                 
                                 if (coords.length === 4 && !coords.some(isNaN)) {
