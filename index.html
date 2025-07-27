@@ -252,13 +252,22 @@ Please provide your final output in JSON format that is easy to read and underst
   "recommendation": "..."
 }`;
 
-        // Load saved prompt from localStorage and initialize models
+        // Load saved prompt and image URL from localStorage and initialize models
         window.addEventListener('load', function() {
             const savedPrompt = localStorage.getItem('imageEvalPrompt');
             if (savedPrompt) {
                 document.getElementById('promptText').value = savedPrompt;
             } else {
                 document.getElementById('promptText').value = DEFAULT_PROMPT;
+            }
+            
+            // Load saved image URL
+            const savedImageUrl = localStorage.getItem('imageEvalUrl');
+            if (savedImageUrl) {
+                document.getElementById('imageUrl').value = savedImageUrl;
+                // Trigger the preview update
+                const event = new Event('input', { bubbles: true });
+                document.getElementById('imageUrl').dispatchEvent(event);
             }
             
             // Load available models
@@ -339,6 +348,11 @@ Please provide your final output in JSON format that is easy to read and underst
         // Save prompt to localStorage when it changes
         document.getElementById('promptText').addEventListener('input', function() {
             localStorage.setItem('imageEvalPrompt', this.value);
+        });
+
+        // Save image URL to localStorage when it changes
+        document.getElementById('imageUrl').addEventListener('input', function() {
+            localStorage.setItem('imageEvalUrl', this.value);
         });
 
         // Show image preview when URL is entered
