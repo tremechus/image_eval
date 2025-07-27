@@ -171,7 +171,7 @@
         
         .image-preview img {
             max-width: 100%;
-            max-height: 250px;
+            max-height: 375px;
             border: 2px solid #e2e8f0;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
@@ -280,6 +280,37 @@
             border-radius: 50%;
             transform: translate(-50%, -50%);
             background: rgba(229, 62, 62, 0.2);
+            cursor: pointer;
+            z-index: 10;
+        }
+        
+        .annotation-marker:hover {
+            border-color: #c53030;
+            background: rgba(229, 62, 62, 0.4);
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+        
+        .annotation-tooltip {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            max-width: 200px;
+            text-align: center;
+            z-index: 20;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .annotation-marker:hover .annotation-tooltip {
+            opacity: 1;
         }
         
         .annotation-area {
@@ -526,7 +557,12 @@ Please provide your final output in JSON format that is easy to read and underst
             const preview = document.getElementById('imagePreview');
             
             if (url && isValidImageUrl(url)) {
-                preview.innerHTML = `<img src="${url}" alt="Image preview" onerror="this.style.display='none'">`;
+                preview.innerHTML = `
+                    <div class="annotated-image-container">
+                        <img src="${url}" alt="Image preview" onerror="this.style.display='none'">
+                        <div class="annotation-overlay"></div>
+                    </div>
+                `;
             } else {
                 preview.innerHTML = '';
             }
@@ -820,9 +856,45 @@ Please provide your final output in JSON format that is easy to read and underst
         function displayAnnotations(content, imageUrl) {
             if (typeof content === 'object' && content.annotations && content.annotations.length > 0) {
                 const preview = document.getElementById('imagePreview');
-                const img = preview.querySelector('img');
-                if (img) {
-                    createAnnotatedImage(img, content.annotations, preview);
+                const container = preview.querySelector('.annotated-image-container');
+                if (container) {
+                    const overlay = container.querySelector('.annotation-overlay');
+                    if (overlay) {
+                        // Clear existing annotations
+                        overlay.innerHTML = '';
+                        
+                        // Add new annotations
+                        content.annotations.forEach((annotation, index) => {
+                            if (annotation.coordinates) {
+                                const coords = annotation.coordinates.split(',').map(c => parseFloat(c.trim()));
+                                if (coords.length === 4) {
+                                    const marker = document.createElement('div');
+                                    marker.className = 'annotation-marker';
+                                    marker.style.left = coords[0] + '%';
+                                    marker.style.top = coords[1] + '%';
+                                    
+                                    // Add tooltip
+                                    const tooltip = document.createElement('div');
+                                    tooltip.className = 'annotation-tooltip';
+                                    tooltip.textContent = annotation.description || `Issue ${index + 1}`;
+                                    marker.appendChild(tooltip);
+                                    
+                                    overlay.appendChild(marker);
+                                    
+                                    // Add area highlight if width/height provided
+                                    if (coords[2] > 0 && coords[3] > 0) {
+                                        const area = document.createElement('div');
+                                        area.className = 'annotation-area';
+                                        area.style.left = coords[0] + '%';
+                                        area.style.top = coords[1] + '%';
+                                        area.style.width = coords[2] + '%';
+                                        area.style.height = coords[3] + '%';
+                                        overlay.appendChild(area);
+                                    }
+                                }
+                            }
+                        });
+                    }
                 }
             }
         }
@@ -853,42 +925,9 @@ Please provide your final output in JSON format that is easy to read and underst
         }
 
         function createAnnotatedImage(originalImg, annotations, container) {
-            const annotatedContainer = document.createElement('div');
-            annotatedContainer.className = 'annotated-image-container';
-            annotatedContainer.style.position = 'relative';
-            annotatedContainer.style.display = 'inline-block';
-            
-            const img = originalImg.cloneNode();
-            const overlay = document.createElement('div');
-            overlay.className = 'annotation-overlay';
-            
-            annotations.forEach(annotation => {
-                if (annotation.coordinates) {
-                    const coords = annotation.coordinates.split(',').map(c => parseFloat(c.trim()));
-                    if (coords.length === 4) {
-                        const marker = document.createElement('div');
-                        marker.className = 'annotation-marker';
-                        marker.style.left = coords[0] + '%';
-                        marker.style.top = coords[1] + '%';
-                        marker.title = annotation.description;
-                        overlay.appendChild(marker);
-                        
-                        if (coords[2] > 0 && coords[3] > 0) {
-                            const area = document.createElement('div');
-                            area.className = 'annotation-area';
-                            area.style.left = coords[0] + '%';
-                            area.style.top = coords[1] + '%';
-                            area.style.width = coords[2] + '%';
-                            area.style.height = coords[3] + '%';
-                            overlay.appendChild(area);
-                        }
-                    }
-                }
-            });
-            
-            annotatedContainer.appendChild(img);
-            annotatedContainer.appendChild(overlay);
-            container.appendChild(annotatedContainer);
+            // This function is now deprecated, but keeping for compatibility
+            // Annotations are now handled directly in displayAnnotations()
+            console.log('createAnnotatedImage called - using new annotation system');
         }
     </script>
 </body>
