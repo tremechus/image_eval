@@ -713,12 +713,24 @@ Please provide your final output in JSON format that is easy to read and underst
             // Calculate variance summary
             const scores = evaluations.map(e => {
                 const content = e.content;
-                return typeof content === 'object' && content.score ? parseFloat(content.score) : null;
+                if (typeof content === 'object' && content.score) {
+                    // Try to extract numeric value from score field
+                    const scoreStr = content.score.toString();
+                    const numMatch = scoreStr.match(/(\d+(?:\.\d+)?)/);
+                    return numMatch ? parseFloat(numMatch[1]) : null;
+                }
+                return null;
             }).filter(s => s !== null);
             
             const confidences = evaluations.map(e => {
                 const content = e.content;
-                return typeof content === 'object' && content.confidence ? parseFloat(content.confidence) : null;
+                if (typeof content === 'object' && content.confidence) {
+                    // Try to extract numeric value from confidence field
+                    const confStr = content.confidence.toString();
+                    const numMatch = confStr.match(/(\d+(?:\.\d+)?)/);
+                    return numMatch ? parseFloat(numMatch[1]) : null;
+                }
+                return null;
             }).filter(c => c !== null);
             
             if (scores.length > 0) {
@@ -736,6 +748,17 @@ Please provide your final output in JSON format that is easy to read and underst
                         ${avgConfidence ? `<p><strong>Average Confidence:</strong> ${avgConfidence.toFixed(1)}%</p>` : ''}
                         <p><strong>Score Range:</strong> ${Math.min(...scores)} - ${Math.max(...scores)}</p>
                         <p><strong>Consistency:</strong> ${scoreStdDev < 5 ? 'High' : scoreStdDev < 10 ? 'Medium' : 'Low'}</p>
+                    </div>
+                `;
+                resultsDiv.innerHTML += summaryHtml;
+            } else {
+                // No scores found, show debug info
+                const summaryHtml = `
+                    <div class="variance-summary">
+                        <h4>Consistency Analysis</h4>
+                        <p><strong>Warning:</strong> Could not extract numeric scores from evaluations.</p>
+                        ${confidences.length > 0 ? `<p><strong>Average Confidence:</strong> ${(confidences.reduce((a, b) => a + b, 0) / confidences.length).toFixed(1)}%</p>` : ''}
+                        <p><strong>Debug:</strong> ${evaluations.length} evaluations completed, but score parsing failed.</p>
                     </div>
                 `;
                 resultsDiv.innerHTML += summaryHtml;
@@ -798,6 +821,15 @@ Please provide your final output in JSON format that is easy to read and underst
                 `;
             }
             return '';
+        }
+
+        function extractNumericValue(value) {
+            if (typeof value === 'number') return value;
+            if (typeof value === 'string') {
+                const numMatch = value.match(/(\d+(?:\.\d+)?)/);
+                return numMatch ? parseFloat(numMatch[1]) : null;
+            }
+            return null;
         }
 
         function createAnnotatedImage(originalImg, annotations, container) {
