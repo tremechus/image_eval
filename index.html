@@ -42,6 +42,78 @@
             margin-bottom: 30px;
         }
         
+        .url-input-container {
+            position: relative;
+            display: flex;
+            gap: 10px;
+            align-items: stretch;
+        }
+        
+        .url-input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+        
+        .history-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+        
+        .history-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f7fafc;
+            font-size: 14px;
+            color: #4a5568;
+            transition: background-color 0.2s ease;
+        }
+        
+        .history-item:hover {
+            background-color: #f7fafc;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .history-button {
+            padding: 15px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #4a5568;
+            font-weight: 600;
+            min-width: 120px;
+            text-align: center;
+        }
+        
+        .history-button:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .clear-history {
+            font-size: 12px;
+            color: #e53e3e;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px 10px;
+            text-decoration: underline;
+        }
+        
         label {
             display: block;
             margin-bottom: 8px;
@@ -270,6 +342,7 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
+            z-index: 5;
         }
         
         .annotation-marker {
@@ -279,15 +352,18 @@
             border: 3px solid #e53e3e;
             border-radius: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(229, 62, 62, 0.2);
+            background: rgba(229, 62, 62, 0.3);
             cursor: pointer;
             z-index: 10;
+            pointer-events: auto;
+            box-shadow: 0 2px 8px rgba(229, 62, 62, 0.4);
         }
         
         .annotation-marker:hover {
             border-color: #c53030;
-            background: rgba(229, 62, 62, 0.4);
+            background: rgba(229, 62, 62, 0.5);
             transform: translate(-50%, -50%) scale(1.2);
+            box-shadow: 0 4px 12px rgba(229, 62, 62, 0.6);
         }
         
         .annotation-tooltip {
@@ -308,6 +384,8 @@
             transition: opacity 0.3s ease;
             pointer-events: none;
         }
+            pointer-events: none;
+        }
         
         .annotation-marker:hover .annotation-tooltip {
             opacity: 1;
@@ -318,6 +396,7 @@
             border: 2px solid #e53e3e;
             background: rgba(229, 62, 62, 0.1);
             pointer-events: none;
+            z-index: 8;
         }
         
         .variance-summary {
@@ -341,7 +420,15 @@
         
         <div class="form-group">
             <label for="imageUrl">Image URL:</label>
-            <input type="url" id="imageUrl" placeholder="Enter image URL (e.g., https://example.com/image.jpg)" />
+            <div class="url-input-container">
+                <div class="url-input-wrapper">
+                    <input type="url" id="imageUrl" placeholder="Enter image URL (e.g., https://example.com/image.jpg)" />
+                    <div id="historyDropdown" class="history-dropdown"></div>
+                </div>
+                <button type="button" class="history-button" onclick="toggleHistory()">
+                    <span id="historyButtonText">History ▼</span>
+                </button>
+            </div>
             <div id="imagePreview" class="image-preview"></div>
         </div>
         
@@ -388,6 +475,7 @@
         <div class="button-container">
             <button id="processButton" onclick="processImage()">Process Image</button>
             <button id="resetButton" onclick="resetPrompt()" style="margin-left: 15px; background: linear-gradient(135deg, #718096 0%, #4a5568 100%);">Reset Prompt</button>
+            <button onclick="testAnnotations()" style="margin-left: 15px; background: linear-gradient(135deg, #38a169 0%, #2f855a 100%); font-size: 14px; padding: 10px 20px;">Test Annotations</button>
         </div>
         
         <div class="output-section">
@@ -398,6 +486,103 @@
     </div>
 
     <script>
+        // Image URL history management
+        const MAX_HISTORY_ITEMS = 15;
+        
+        function getImageHistory() {
+            const history = localStorage.getItem('imageEvalHistory');
+            return history ? JSON.parse(history) : [];
+        }
+        
+        function addToImageHistory(url) {
+            if (!url || !isValidImageUrl(url)) return;
+            
+            let history = getImageHistory();
+            
+            // Remove if already exists
+            history = history.filter(item => item.url !== url);
+            
+            // Add to beginning
+            history.unshift({
+                url: url,
+                timestamp: new Date().toISOString(),
+                preview: url.length > 50 ? url.substring(0, 47) + '...' : url
+            });
+            
+            // Keep only last 15
+            history = history.slice(0, MAX_HISTORY_ITEMS);
+            
+            localStorage.setItem('imageEvalHistory', JSON.stringify(history));
+            updateHistoryDropdown();
+        }
+        
+        function updateHistoryDropdown() {
+            const dropdown = document.getElementById('historyDropdown');
+            const history = getImageHistory();
+            
+            if (history.length === 0) {
+                dropdown.innerHTML = '<div class="history-item" style="color: #a0aec0; font-style: italic;">No recent images</div>';
+                return;
+            }
+            
+            let html = '';
+            history.forEach((item, index) => {
+                const date = new Date(item.timestamp).toLocaleDateString();
+                html += `
+                    <div class="history-item" onclick="selectFromHistory('${item.url.replace(/'/g, "\\'")}')">
+                        <div style="font-weight: 500;">${item.preview}</div>
+                        <div style="font-size: 11px; color: #a0aec0; margin-top: 2px;">${date}</div>
+                    </div>
+                `;
+            });
+            
+            html += '<button class="clear-history" onclick="clearImageHistory()">Clear History</button>';
+            dropdown.innerHTML = html;
+        }
+        
+        function toggleHistory() {
+            const dropdown = document.getElementById('historyDropdown');
+            const button = document.getElementById('historyButtonText');
+            
+            if (dropdown.style.display === 'block') {
+                dropdown.style.display = 'none';
+                button.textContent = 'History ▼';
+            } else {
+                updateHistoryDropdown();
+                dropdown.style.display = 'block';
+                button.textContent = 'History ▲';
+            }
+        }
+        
+        function selectFromHistory(url) {
+            document.getElementById('imageUrl').value = url;
+            document.getElementById('historyDropdown').style.display = 'none';
+            document.getElementById('historyButtonText').textContent = 'History ▼';
+            
+            // Trigger the preview update
+            const event = new Event('input', { bubbles: true });
+            document.getElementById('imageUrl').dispatchEvent(event);
+        }
+        
+        function clearImageHistory() {
+            localStorage.removeItem('imageEvalHistory');
+            updateHistoryDropdown();
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('historyDropdown');
+            const button = document.querySelector('.history-button');
+            const urlInput = document.getElementById('imageUrl');
+            
+            if (!dropdown.contains(event.target) && 
+                !button.contains(event.target) && 
+                !urlInput.contains(event.target)) {
+                dropdown.style.display = 'none';
+                document.getElementById('historyButtonText').textContent = 'History ▼';
+            }
+        });
+
         // Default prompt text
         const DEFAULT_PROMPT = `You are an AI expert tasked with evaluating headshots for professional use (e.g., LinkedIn, corporate websites). 
 
@@ -550,6 +735,14 @@ Please provide your final output in JSON format that is easy to read and underst
         document.getElementById('imageUrl').addEventListener('input', function() {
             localStorage.setItem('imageEvalUrl', this.value);
         });
+        
+        // Add to history when processing image
+        function addCurrentImageToHistory() {
+            const imageUrl = document.getElementById('imageUrl').value.trim();
+            if (imageUrl && isValidImageUrl(imageUrl)) {
+                addToImageHistory(imageUrl);
+            }
+        }
 
         // Show image preview when URL is entered
         document.getElementById('imageUrl').addEventListener('input', function() {
@@ -602,6 +795,9 @@ Please provide your final output in JSON format that is easy to read and underst
             // Disable button and show loading
             processButton.disabled = true;
             resultsDiv.style.display = 'none';
+            
+            // Add current image to history
+            addCurrentImageToHistory();
             
             if (evaluationCount === 1) {
                 showOutput('Loading image and processing...', 'loading');
@@ -854,7 +1050,11 @@ Please provide your final output in JSON format that is easy to read and underst
         }
 
         function displayAnnotations(content, imageUrl) {
+            console.log('displayAnnotations called with:', content);
+            
             if (typeof content === 'object' && content.annotations && content.annotations.length > 0) {
+                console.log('Found annotations:', content.annotations);
+                
                 const preview = document.getElementById('imagePreview');
                 const container = preview.querySelector('.annotated-image-container');
                 if (container) {
@@ -865,13 +1065,19 @@ Please provide your final output in JSON format that is easy to read and underst
                         
                         // Add new annotations
                         content.annotations.forEach((annotation, index) => {
+                            console.log('Processing annotation:', annotation);
+                            
                             if (annotation.coordinates) {
                                 const coords = annotation.coordinates.split(',').map(c => parseFloat(c.trim()));
-                                if (coords.length === 4) {
+                                console.log('Parsed coordinates:', coords);
+                                
+                                if (coords.length === 4 && !coords.some(isNaN)) {
                                     const marker = document.createElement('div');
                                     marker.className = 'annotation-marker';
                                     marker.style.left = coords[0] + '%';
                                     marker.style.top = coords[1] + '%';
+                                    
+                                    console.log('Creating marker at:', coords[0] + '%', coords[1] + '%');
                                     
                                     // Add tooltip
                                     const tooltip = document.createElement('div');
@@ -890,12 +1096,26 @@ Please provide your final output in JSON format that is easy to read and underst
                                         area.style.width = coords[2] + '%';
                                         area.style.height = coords[3] + '%';
                                         overlay.appendChild(area);
+                                        
+                                        console.log('Created annotation area at:', coords);
                                     }
+                                } else {
+                                    console.warn('Invalid coordinates:', coords);
                                 }
+                            } else {
+                                console.warn('No coordinates found for annotation:', annotation);
                             }
                         });
+                        
+                        console.log('Total markers added:', overlay.children.length);
+                    } else {
+                        console.warn('No annotation overlay found');
                     }
+                } else {
+                    console.warn('No annotated image container found');
                 }
+            } else {
+                console.log('No annotations found in content');
             }
         }
 
@@ -928,6 +1148,38 @@ Please provide your final output in JSON format that is easy to read and underst
             // This function is now deprecated, but keeping for compatibility
             // Annotations are now handled directly in displayAnnotations()
             console.log('createAnnotatedImage called - using new annotation system');
+        }
+
+        function testAnnotations() {
+            console.log('Testing annotations...');
+            
+            // First ensure there's an image loaded
+            const imageUrl = document.getElementById('imageUrl').value.trim();
+            if (!imageUrl) {
+                alert('Please enter an image URL first to test annotations');
+                return;
+            }
+            
+            // Create test annotation data
+            const testContent = {
+                annotations: [
+                    {
+                        type: "issue",
+                        description: "Test annotation marker",
+                        coordinates: "25,25,10,10"
+                    },
+                    {
+                        type: "issue", 
+                        description: "Another test marker",
+                        coordinates: "75,50,5,5"
+                    }
+                ]
+            };
+            
+            console.log('Calling displayAnnotations with test data');
+            displayAnnotations(testContent, imageUrl);
+            
+            showOutput('Test annotations added to image preview. Check the browser console for debug info.', 'success');
         }
     </script>
 </body>
