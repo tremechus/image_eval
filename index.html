@@ -180,6 +180,126 @@
             transform: scale(1.02);
             box-shadow: 0 6px 20px rgba(0,0,0,0.15);
         }
+        
+        .controls-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .control-group label {
+            margin: 0;
+            font-size: 0.9rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        
+        .control-group input, .control-group select {
+            padding: 6px 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .control-group input:focus, .control-group select:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        
+        .evaluation-results {
+            display: grid;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .evaluation-item {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .evaluation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+        
+        .confidence-badge {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .confidence-low {
+            background: linear-gradient(135deg, #ed8936, #dd6b20);
+        }
+        
+        .confidence-medium {
+            background: linear-gradient(135deg, #ecc94b, #d69e2e);
+        }
+        
+        .annotated-image-container {
+            position: relative;
+            display: inline-block;
+            margin: 10px 0;
+        }
+        
+        .annotation-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .annotation-marker {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #e53e3e;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(229, 62, 62, 0.2);
+        }
+        
+        .annotation-area {
+            position: absolute;
+            border: 2px solid #e53e3e;
+            background: rgba(229, 62, 62, 0.1);
+            pointer-events: none;
+        }
+        
+        .variance-summary {
+            background: rgba(102, 126, 234, 0.1);
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .variance-summary h4 {
+            margin: 0 0 10px 0;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
     </style>
 </head>
 <body>
@@ -211,6 +331,24 @@
                     </select>
                 </div>
             </div>
+            <div class="controls-row">
+                <div class="control-group">
+                    <label for="evaluationCount">Evaluations:</label>
+                    <select id="evaluationCount">
+                        <option value="1">1 (Single)</option>
+                        <option value="3">3 (Consistency Check)</option>
+                        <option value="5">5 (High Confidence)</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="showAnnotations">Visual Annotations:</label>
+                    <input type="checkbox" id="showAnnotations" checked>
+                </div>
+                <div class="control-group">
+                    <label for="requireConfidence">Require Confidence Score:</label>
+                    <input type="checkbox" id="requireConfidence" checked>
+                </div>
+            </div>
             <textarea id="promptText" placeholder="Enter your prompt for the AI to analyze the image..."></textarea>
         </div>
         
@@ -222,6 +360,7 @@
         <div class="output-section">
             <label for="output">Output:</label>
             <div id="output" class="output-box">Results will appear here...</div>
+            <div id="evaluationResults" class="evaluation-results" style="display: none;"></div>
         </div>
     </div>
 
@@ -243,13 +382,19 @@ here are some additional Criteria to help judge professionalism:
 * Attire & Appearance: Is the subject's attire and grooming appropriate for a professional context?
 * Visibility: The subject should not be wearing sunglasses or hats that obscure their face.
 
-After evaluating each criterion, provide an Overall Professionalism Score (from 1 to 100) and a Final Recommendation (e.g., "Highly Recommended", "Usable with Minor Concerns", "Not Recommended").  If any of the required criteria are not met give a recommendation of Not Recommended.  Also include a description of the image
+After evaluating each criterion, provide an Overall Professionalism Score (from 1 to 100) and a Final Recommendation (e.g., "Highly Recommended", "Usable with Minor Concerns", "Not Recommended").  If any of the required criteria are not met give a recommendation of Not Recommended.  Also include a description of the image and your confidence in this evaluation (1-100%).
+
+For visual annotations, if you identify specific issues, provide coordinates as percentages of image dimensions for problem areas (format: x,y,width,height as percentages).
 
 Please provide your final output in JSON format that is easy to read and understand in this format:
 {
   "description": "...",
   "score": "...",
-  "recommendation": "..."
+  "recommendation": "...",
+  "confidence": "...",
+  "annotations": [
+    {"type": "issue", "description": "...", "coordinates": "x,y,width,height"}
+  ]
 }`;
 
         // Load saved prompt and image URL from localStorage and initialize models
@@ -380,7 +525,11 @@ Please provide your final output in JSON format that is easy to read and underst
             const imageUrl = document.getElementById('imageUrl').value.trim();
             const promptText = document.getElementById('promptText').value.trim();
             const selectedModel = document.getElementById('modelSelect').value;
+            const evaluationCount = parseInt(document.getElementById('evaluationCount').value);
+            const showAnnotations = document.getElementById('showAnnotations').checked;
+            const requireConfidence = document.getElementById('requireConfidence').checked;
             const outputDiv = document.getElementById('output');
+            const resultsDiv = document.getElementById('evaluationResults');
             const processButton = document.getElementById('processButton');
 
             // Validation
@@ -396,63 +545,97 @@ Please provide your final output in JSON format that is easy to read and underst
 
             // Disable button and show loading
             processButton.disabled = true;
-            showOutput('Loading image and processing...', 'loading');
+            resultsDiv.style.display = 'none';
+            
+            if (evaluationCount === 1) {
+                showOutput('Loading image and processing...', 'loading');
+            } else {
+                showOutput(`Running ${evaluationCount} evaluations for consistency check...`, 'loading');
+            }
 
             try {
                 // Convert image to base64
                 const base64Image = await imageToBase64(imageUrl);
                 console.log('Image converted to base64, length:', base64Image.length);
                 
-                console.log('Making request to server...');
+                const evaluations = [];
                 
-                // Use generate endpoint format
-                const generateRequestBody = {
-                    model: selectedModel,
-                    prompt: promptText,
-                    stream: false,
-                    images: [base64Image],
-                    format: 'json'
-                };
-                
-                const headers = {
-                    'Content-Type': 'application/json'
-                };
-                
-                // Use the same header capitalization as ai_discuss
-                headers['X-API-Key'] = 'thisisthesecretkey';
-                
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
-                
-                const response = await fetch('https://server.tremech.us:11434/api/generate', {
-                    method: 'POST',
-                    headers,
-                    body: JSON.stringify(generateRequestBody),
-                    signal: controller.signal
-                });
-                
-                clearTimeout(timeoutId);
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Server error: ${response.status} ${response.statusText} - ${errorText}`);
-                }
-
-                const result = await response.json();
-                
-                // Extract content from generate response format
-                let content = result;
-                if (result.response) {
-                    content = result.response;
-                    try {
-                        // Try to parse the content as JSON if format was requested
-                        content = JSON.parse(content);
-                    } catch (e) {
-                        // If parsing fails, use the raw content
+                // Run multiple evaluations
+                for (let i = 0; i < evaluationCount; i++) {
+                    if (evaluationCount > 1) {
+                        showOutput(`Running evaluation ${i + 1} of ${evaluationCount}...`, 'loading');
                     }
+                    
+                    // Modify prompt for confidence and annotations if requested
+                    let finalPrompt = promptText;
+                    if (requireConfidence && !promptText.includes('confidence')) {
+                        finalPrompt = promptText.replace(
+                            'Please provide your final output in JSON format',
+                            'Include your confidence in this evaluation (1-100%). Please provide your final output in JSON format'
+                        );
+                    }
+                    
+                    console.log('Making request to server...');
+                    
+                    const generateRequestBody = {
+                        model: selectedModel,
+                        prompt: finalPrompt,
+                        stream: false,
+                        images: [base64Image],
+                        format: 'json'
+                    };
+                    
+                    const headers = {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': 'thisisthesecretkey'
+                    };
+                    
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 60000);
+                    
+                    const response = await fetch('https://server.tremech.us:11434/api/generate', {
+                        method: 'POST',
+                        headers,
+                        body: JSON.stringify(generateRequestBody),
+                        signal: controller.signal
+                    });
+                    
+                    clearTimeout(timeoutId);
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`Server error: ${response.status} ${response.statusText} - ${errorText}`);
+                    }
+
+                    const result = await response.json();
+                    
+                    // Extract content from generate response format
+                    let content = result;
+                    if (result.response) {
+                        content = result.response;
+                        try {
+                            content = JSON.parse(content);
+                        } catch (e) {
+                            // If parsing fails, use the raw content
+                        }
+                    }
+                    
+                    evaluations.push({
+                        id: i + 1,
+                        content: content,
+                        timestamp: new Date().toLocaleTimeString()
+                    });
                 }
                 
-                showOutput(JSON.stringify(content, null, 2), 'success');
+                // Display results
+                if (evaluationCount === 1) {
+                    showOutput(JSON.stringify(evaluations[0].content, null, 2), 'success');
+                    if (showAnnotations) {
+                        displayAnnotations(evaluations[0].content, imageUrl);
+                    }
+                } else {
+                    displayMultipleEvaluations(evaluations, showAnnotations, imageUrl);
+                }
 
             } catch (error) {
                 if (error.name === 'TypeError' && error.message.includes('fetch')) {
@@ -475,8 +658,8 @@ Please provide your final output in JSON format that is easy to read and underst
                 img.crossOrigin = 'anonymous'; // Enable CORS
                 
                 img.onload = function() {
-                    // Resize large images to reduce payload size
-                    const maxSize = 400; // Reduced from 800 to 400
+                    // Resize large images to fit in a 1024x1024 box, maintaining aspect ratio
+                    const maxSize = 1024;
                     let { width, height } = img;
                     
                     if (width > maxSize || height > maxSize) {
@@ -489,8 +672,8 @@ Please provide your final output in JSON format that is easy to read and underst
                     canvas.height = height;
                     ctx.drawImage(img, 0, 0, width, height);
                     
-                    // Get base64 data with lower quality to reduce size
-                    const base64 = canvas.toDataURL('image/jpeg', 0.5).split(',')[1]; // Reduced quality to 50%
+                    // Get base64 data with good quality
+                    const base64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
                     resolve(base64);
                 };
 
@@ -518,6 +701,142 @@ Please provide your final output in JSON format that is easy to read and underst
         function resetPrompt() {
             document.getElementById('promptText').value = DEFAULT_PROMPT;
             localStorage.setItem('imageEvalPrompt', DEFAULT_PROMPT);
+        }
+
+        function displayMultipleEvaluations(evaluations, showAnnotations, imageUrl) {
+            const resultsDiv = document.getElementById('evaluationResults');
+            const outputDiv = document.getElementById('output');
+            
+            resultsDiv.innerHTML = '';
+            resultsDiv.style.display = 'block';
+            
+            // Calculate variance summary
+            const scores = evaluations.map(e => {
+                const content = e.content;
+                return typeof content === 'object' && content.score ? parseFloat(content.score) : null;
+            }).filter(s => s !== null);
+            
+            const confidences = evaluations.map(e => {
+                const content = e.content;
+                return typeof content === 'object' && content.confidence ? parseFloat(content.confidence) : null;
+            }).filter(c => c !== null);
+            
+            if (scores.length > 0) {
+                const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+                const scoreVariance = scores.reduce((a, b) => a + Math.pow(b - avgScore, 2), 0) / scores.length;
+                const scoreStdDev = Math.sqrt(scoreVariance);
+                
+                const avgConfidence = confidences.length > 0 ? 
+                    confidences.reduce((a, b) => a + b, 0) / confidences.length : null;
+                
+                const summaryHtml = `
+                    <div class="variance-summary">
+                        <h4>Consistency Analysis</h4>
+                        <p><strong>Average Score:</strong> ${avgScore.toFixed(1)} (±${scoreStdDev.toFixed(1)})</p>
+                        ${avgConfidence ? `<p><strong>Average Confidence:</strong> ${avgConfidence.toFixed(1)}%</p>` : ''}
+                        <p><strong>Score Range:</strong> ${Math.min(...scores)} - ${Math.max(...scores)}</p>
+                        <p><strong>Consistency:</strong> ${scoreStdDev < 5 ? 'High' : scoreStdDev < 10 ? 'Medium' : 'Low'}</p>
+                    </div>
+                `;
+                resultsDiv.innerHTML += summaryHtml;
+            }
+            
+            // Display individual evaluations
+            evaluations.forEach((evaluation, index) => {
+                const content = evaluation.content;
+                const confidence = typeof content === 'object' && content.confidence ? 
+                    parseFloat(content.confidence) : null;
+                
+                const confidenceBadge = confidence ? 
+                    `<span class="confidence-badge ${getConfidenceClass(confidence)}">
+                        Confidence: ${confidence}%
+                    </span>` : '';
+                
+                const evaluationHtml = `
+                    <div class="evaluation-item">
+                        <div class="evaluation-header">
+                            <span>Evaluation ${evaluation.id} (${evaluation.timestamp})</span>
+                            ${confidenceBadge}
+                        </div>
+                        <pre style="font-family: 'JetBrains Mono', monospace; white-space: pre-wrap; margin: 0;">${JSON.stringify(content, null, 2)}</pre>
+                        ${showAnnotations ? getAnnotationDisplay(content, imageUrl, index) : ''}
+                    </div>
+                `;
+                resultsDiv.innerHTML += evaluationHtml;
+            });
+            
+            showOutput('Multiple evaluations completed. See detailed results below.', 'success');
+        }
+
+        function getConfidenceClass(confidence) {
+            if (confidence >= 80) return 'confidence-high';
+            if (confidence >= 60) return 'confidence-medium';
+            return 'confidence-low';
+        }
+
+        function displayAnnotations(content, imageUrl) {
+            if (typeof content === 'object' && content.annotations && content.annotations.length > 0) {
+                const preview = document.getElementById('imagePreview');
+                const img = preview.querySelector('img');
+                if (img) {
+                    createAnnotatedImage(img, content.annotations, preview);
+                }
+            }
+        }
+
+        function getAnnotationDisplay(content, imageUrl, index) {
+            if (typeof content === 'object' && content.annotations && content.annotations.length > 0) {
+                return `
+                    <div style="margin-top: 10px;">
+                        <strong>Annotations:</strong>
+                        <div style="font-size: 12px; color: #666;">
+                            ${content.annotations.map(ann => 
+                                `• ${ann.description} ${ann.coordinates ? `(${ann.coordinates})` : ''}`
+                            ).join('<br>')}
+                        </div>
+                    </div>
+                `;
+            }
+            return '';
+        }
+
+        function createAnnotatedImage(originalImg, annotations, container) {
+            const annotatedContainer = document.createElement('div');
+            annotatedContainer.className = 'annotated-image-container';
+            annotatedContainer.style.position = 'relative';
+            annotatedContainer.style.display = 'inline-block';
+            
+            const img = originalImg.cloneNode();
+            const overlay = document.createElement('div');
+            overlay.className = 'annotation-overlay';
+            
+            annotations.forEach(annotation => {
+                if (annotation.coordinates) {
+                    const coords = annotation.coordinates.split(',').map(c => parseFloat(c.trim()));
+                    if (coords.length === 4) {
+                        const marker = document.createElement('div');
+                        marker.className = 'annotation-marker';
+                        marker.style.left = coords[0] + '%';
+                        marker.style.top = coords[1] + '%';
+                        marker.title = annotation.description;
+                        overlay.appendChild(marker);
+                        
+                        if (coords[2] > 0 && coords[3] > 0) {
+                            const area = document.createElement('div');
+                            area.className = 'annotation-area';
+                            area.style.left = coords[0] + '%';
+                            area.style.top = coords[1] + '%';
+                            area.style.width = coords[2] + '%';
+                            area.style.height = coords[3] + '%';
+                            overlay.appendChild(area);
+                        }
+                    }
+                }
+            });
+            
+            annotatedContainer.appendChild(img);
+            annotatedContainer.appendChild(overlay);
+            container.appendChild(annotatedContainer);
         }
     </script>
 </body>
