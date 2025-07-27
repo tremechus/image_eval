@@ -703,8 +703,11 @@ Please provide your final output in JSON format that is easy to read and underst
                         // Clear existing options
                         modelSelect.innerHTML = '';
                         
+                        // Sort models alphabetically by name
+                        const sortedModels = data.models.sort((a, b) => a.name.localeCompare(b.name));
+                        
                         // Add models to select
-                        data.models.forEach(model => {
+                        sortedModels.forEach(model => {
                             const option = document.createElement('option');
                             option.value = model.name;
                             option.textContent = model.name;
