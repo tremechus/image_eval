@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Evaluator</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="alternate icon" href="favicon.ico">
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -366,29 +368,47 @@
 
     <script>
         // Default prompt text
-        const DEFAULT_PROMPT = `You are an AI expert tasked with evaluating headshots for professional use (e.g., LinkedIn, corporate websites). Analyze the provided image based on the following criteria. For each criterion, provide a score from 1 (poor) to 10 (excellent) and a brief justification.
+        const DEFAULT_PROMPT = `You are an AI expert tasked with evaluating headshots for professional use (e.g., LinkedIn, corporate websites). 
 
-this criteria must be met to be a success:
-* must have exactly one subject
-* Subject must be human
-* subject's face must be clearly visible without obstruction
+STEP 1: First, provide a detailed description of what you see in the image, including:
+- How many people/subjects are visible
+- Whether the subjects appear to be human
+- The visibility and clarity of faces
+- Any obstructions (sunglasses, hats, hands, etc.)
+- Background elements and potential distractions
+- Lighting conditions
+- Image quality and focus
+- Composition and framing
+- Attire and appearance
 
-here are some additional Criteria to help judge professionalism:
+STEP 2: Based ONLY on your description from Step 1, answer these critical validation questions with simple 'Yes' or 'No':
+- Is there exactly one subject in the image?
+- Is the subject human?
+- Is the subject's face clearly visible without obstruction?
+
+STEP 3: If ALL three validation questions are 'Yes', proceed with the professional evaluation. If ANY answer is 'No', skip to the final output with a "Not Recommended" result.
+
+For professional evaluation, analyze based on these criteria and provide scores from 1 (poor) to 10 (excellent):
 * Distractions: Is the image free of distracting elements like pets, objects, or other people?
 * Composition & Framing: Is the person well-centered and framed appropriately (e.g., head and shoulders)?
-* Background: Is the background neutral, non-distracting, or professionally appropriate (e.g., an office setting vs. a messy room)?
+* Background: Is the background neutral, non-distracting, or professionally appropriate?
 * Lighting: Is the subject's face clearly visible and well-lit, without harsh shadows?
 * Image Quality: Is the image clear, in-focus, and not blurry or pixelated?
 * Attire & Appearance: Is the subject's attire and grooming appropriate for a professional context?
-* Visibility: The subject should not be wearing sunglasses or hats that obscure their face.
 
-After evaluating each criterion, provide an Overall Professionalism Score (from 1 to 100) and a Final Recommendation (e.g., "Highly Recommended", "Usable with Minor Concerns", "Not Recommended").  If any of the required criteria are not met give a recommendation of Not Recommended.  Also include a description of the image and your confidence in this evaluation (1-100%).
+After evaluating each criterion, provide an Overall Professionalism Score (from 1 to 100) and a Final Recommendation (e.g., "Highly Recommended", "Usable with Minor Concerns", "Not Recommended"). Include your confidence in this evaluation (1-100%).
 
 For visual annotations, if you identify specific issues, provide coordinates as percentages of image dimensions for problem areas (format: x,y,width,height as percentages).
 
 Please provide your final output in JSON format that is easy to read and understand in this format:
 {
-  "description": "...",
+  "step1_description": "...",
+  "step2_validation": {
+    "exactly_one_subject": "Yes/No",
+    "subject_is_human": "Yes/No", 
+    "face_clearly_visible": "Yes/No"
+  },
+  "meets_requirements": "Yes/No",
   "score": "...",
   "recommendation": "...",
   "confidence": "...",
