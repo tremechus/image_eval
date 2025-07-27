@@ -76,6 +76,9 @@
             font-size: 14px;
             color: #4a5568;
             transition: background-color 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
         
         .history-item:hover {
@@ -84,6 +87,33 @@
         
         .history-item:last-child {
             border-bottom: none;
+        }
+        
+        .history-item-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            object-fit: cover;
+            border: 1px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+        
+        .history-item-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .history-item-url {
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .history-item-date {
+            font-size: 11px;
+            color: #a0aec0;
+            margin-top: 2px;
         }
         
         .history-button {
@@ -384,8 +414,6 @@
             transition: opacity 0.3s ease;
             pointer-events: none;
         }
-            pointer-events: none;
-        }
         
         .annotation-marker:hover .annotation-tooltip {
             opacity: 1;
@@ -475,7 +503,6 @@
         <div class="button-container">
             <button id="processButton" onclick="processImage()">Process Image</button>
             <button id="resetButton" onclick="resetPrompt()" style="margin-left: 15px; background: linear-gradient(135deg, #718096 0%, #4a5568 100%);">Reset Prompt</button>
-            <button onclick="testAnnotations()" style="margin-left: 15px; background: linear-gradient(135deg, #38a169 0%, #2f855a 100%); font-size: 14px; padding: 10px 20px;">Test Annotations</button>
         </div>
         
         <div class="output-section">
@@ -530,8 +557,11 @@
                 const date = new Date(item.timestamp).toLocaleDateString();
                 html += `
                     <div class="history-item" onclick="selectFromHistory('${item.url.replace(/'/g, "\\'")}')">
-                        <div style="font-weight: 500;">${item.preview}</div>
-                        <div style="font-size: 11px; color: #a0aec0; margin-top: 2px;">${date}</div>
+                        <img src="${item.url}" alt="Thumbnail" class="history-item-image" onerror="this.style.display='none'">
+                        <div class="history-item-content">
+                            <div class="history-item-url">${item.preview}</div>
+                            <div class="history-item-date">${date}</div>
+                        </div>
                     </div>
                 `;
             });
@@ -1148,38 +1178,6 @@ Please provide your final output in JSON format that is easy to read and underst
             // This function is now deprecated, but keeping for compatibility
             // Annotations are now handled directly in displayAnnotations()
             console.log('createAnnotatedImage called - using new annotation system');
-        }
-
-        function testAnnotations() {
-            console.log('Testing annotations...');
-            
-            // First ensure there's an image loaded
-            const imageUrl = document.getElementById('imageUrl').value.trim();
-            if (!imageUrl) {
-                alert('Please enter an image URL first to test annotations');
-                return;
-            }
-            
-            // Create test annotation data
-            const testContent = {
-                annotations: [
-                    {
-                        type: "issue",
-                        description: "Test annotation marker",
-                        coordinates: "25,25,10,10"
-                    },
-                    {
-                        type: "issue", 
-                        description: "Another test marker",
-                        coordinates: "75,50,5,5"
-                    }
-                ]
-            };
-            
-            console.log('Calling displayAnnotations with test data');
-            displayAnnotations(testContent, imageUrl);
-            
-            showOutput('Test annotations added to image preview. Check the browser console for debug info.', 'success');
         }
     </script>
 </body>
